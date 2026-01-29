@@ -1,0 +1,28 @@
+diff --git a/package.json b/package.json
+index c4ec835d848fe3e857238617c7a0b8bbe32012eb..ae4bcde2a143716434119a88a27bba9c10347548 100644
+--- a/package.json
++++ b/package.json
+@@ -30,7 +30,6 @@
+       "node": {
+         "types": "./dist/development/index.d.ts",
+         "module": "./dist/development/index.mjs",
+-        "module-sync": "./dist/development/index.mjs",
+         "default": "./dist/development/index.js"
+       },
+       "module": {
+@@ -50,7 +49,6 @@
+       "node": {
+         "types": "./dist/development/dom-export.d.ts",
+         "module": "./dist/development/dom-export.mjs",
+-        "module-sync": "./dist/development/dom-export.mjs",
+         "default": "./dist/development/dom-export.js"
+       },
+       "module": {
+@@ -85,7 +83,6 @@
+       "node": {
+         "types": "./dist/development/index.d.ts",
+         "module": "./dist/development/index.mjs",
+-        "module-sync": "./dist/development/index.mjs",
+         "default": "./dist/development/index.js"
+       },
+       "module": {

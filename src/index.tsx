@@ -14,36 +14,28 @@
  *
  * More Info:
  *
- * https://github.com/icd2k3/use-react-router-breadcrumbs
+ * https://github.com/andrzej-woof/use-react-router-breadcrumbs
  *
  */
-import React, { createElement } from 'react';
+import React, { createElement, type JSX } from "react";
 import {
-  matchPath,
-  useLocation,
-  RouteObject,
-  Params,
-  Route,
-  PathRouteProps,
-  LayoutRouteProps,
   IndexRouteProps,
-} from 'react-router-dom';
+  LayoutRouteProps,
+  matchPath,
+  Params,
+  PathPattern,
+  PathRouteProps,
+  Route,
+  RouteObject,
+  useLocation,
+} from "react-router";
 
 type Location = ReturnType<typeof useLocation>;
-
-/**
- * This type interface is copied in directly from react-router (react-router-dom does not export it)
- */
-interface PathPattern<Path extends string = string> {
-  path: Path;
-  caseSensitive?: boolean;
-  end?: boolean;
-}
 
 export interface Options {
   disableDefaults?: boolean;
   excludePaths?: string[];
-  defaultFormatter?: (str: string) => string
+  defaultFormatter?: (str: string) => string;
 }
 
 export interface BreadcrumbMatch<ParamKey extends string = string> {
@@ -101,7 +93,8 @@ interface BreadcrumbsRouteBranch {
   routesMeta: BreadcrumbsRouteMeta[];
 }
 
-const joinPaths = (paths: string[]): string => paths.join('/').replace(/\/\/+/g, '/');
+const joinPaths = (paths: string[]): string =>
+  paths.join("/").replace(/\/\/+/g, "/");
 
 const paramRe = /^:\w+$/;
 const dynamicSegmentValue = 3;
@@ -109,10 +102,10 @@ const indexRouteValue = 2;
 const emptySegmentValue = 1;
 const staticSegmentValue = 10;
 const splatPenalty = -2;
-const isSplat = (s: string) => s === '*';
+const isSplat = (s: string) => s === "*";
 
 function computeScore(path: string, index: boolean | undefined): number {
-  const segments = path.split('/');
+  const segments = path.split("/");
   let initialScore = segments.length;
   if (segments.some(isSplat)) {
     initialScore += splatPenalty;
@@ -128,7 +121,7 @@ function computeScore(path: string, index: boolean | undefined): number {
       if (paramRe.test(segment)) {
         return score + dynamicSegmentValue;
       }
-      if (segment === '') {
+      if (segment === "") {
         return score + emptySegmentValue;
       }
       return score + staticSegmentValue;
@@ -136,7 +129,8 @@ function computeScore(path: string, index: boolean | undefined): number {
 }
 
 function compareIndexes(a: number[], b: number[]): number {
-  const siblings = a.length === b.length && a.slice(0, -1).every((n, i) => n === b[i]);
+  const siblings =
+    a.length === b.length && a.slice(0, -1).every((n, i) => n === b[i]);
   return siblings ? a[a.length - 1] - b[b.length - 1] : 0;
 }
 
@@ -144,29 +138,33 @@ function flattenRoutes(
   routes: BreadcrumbsRoute[],
   branches: BreadcrumbsRouteBranch[] = [],
   parentsMeta: BreadcrumbsRouteMeta[] = [],
-  parentPath = '',
+  parentPath = ""
 ): BreadcrumbsRouteBranch[] {
   routes.forEach((route, index) => {
-    if (typeof route.path !== 'string' && !route.index && !route.children?.length) {
+    if (
+      typeof route.path !== "string" &&
+      !route.index &&
+      !route.children?.length
+    ) {
       throw new Error(
-        'useBreadcrumbs: `path` or `index` must be provided in every route object',
+        "useBreadcrumbs: `path` or `index` must be provided in every route object"
       );
     }
     if (route.path && route.index) {
       throw new Error(
-        'useBreadcrumbs: `path` and `index` cannot be provided at the same time',
+        "useBreadcrumbs: `path` and `index` cannot be provided at the same time"
       );
     }
     const meta: BreadcrumbsRouteMeta = {
-      relativePath: route.path || '',
+      relativePath: route.path || "",
       childrenIndex: index,
       route,
     };
 
-    if (meta.relativePath.charAt(0) === '/') {
+    if (meta.relativePath.charAt(0) === "/") {
       if (!meta.relativePath.startsWith(parentPath)) {
         throw new Error(
-          'useBreadcrumbs: The absolute path of the child route must start with the parent path',
+          "useBreadcrumbs: The absolute path of the child route must start with the parent path"
         );
       }
       meta.relativePath = meta.relativePath.slice(parentPath.length);
@@ -177,7 +175,7 @@ function flattenRoutes(
 
     if (route.children && route.children.length > 0) {
       if (route.index) {
-        throw new Error('useBreadcrumbs: Index route cannot have child routes');
+        throw new Error("useBreadcrumbs: Index route cannot have child routes");
       }
       flattenRoutes(route.children, branches, routesMeta, path);
     }
@@ -192,28 +190,31 @@ function flattenRoutes(
 }
 
 function rankRouteBranches(
-  branches: BreadcrumbsRouteBranch[],
+  branches: BreadcrumbsRouteBranch[]
 ): BreadcrumbsRouteBranch[] {
-  return branches.sort((a, b) => (a.score !== b.score
-    ? b.score - a.score // Higher score first
-    : compareIndexes(
-      a.routesMeta.map((meta) => meta.childrenIndex),
-      b.routesMeta.map((meta) => meta.childrenIndex),
-    )));
+  return branches.sort((a, b) =>
+    a.score !== b.score
+      ? b.score - a.score // Higher score first
+      : compareIndexes(
+          a.routesMeta.map((meta) => meta.childrenIndex),
+          b.routesMeta.map((meta) => meta.childrenIndex)
+        )
+  );
 }
 
 // Begin: useBreadcrumbs
-const NO_BREADCRUMB = Symbol('NO_BREADCRUMB');
+const NO_BREADCRUMB = Symbol("NO_BREADCRUMB");
 
 /**
  * This method was "borrowed" from https://stackoverflow.com/a/28339742
  * we used to use the humanize-string package, but it added a lot of bundle
  * size and issues with compilation. This 4-liner seems to cover most cases.
  */
-export const humanize = (str: string): string => str
-  .replace(/^[\s_]+|[\s_]+$/g, '')
-  .replace(/[-_\s]+/g, ' ')
-  .replace(/^[a-z]/, (m) => m.toUpperCase());
+export const humanize = (str: string): string =>
+  str
+    .replace(/^[\s_]+|[\s_]+$/g, "")
+    .replace(/[-_\s]+/g, " ")
+    .replace(/^[a-z]/, (m) => m.toUpperCase());
 
 /**
  * Renders and returns the breadcrumb complete
@@ -240,8 +241,8 @@ const render = ({
   return {
     ...componentProps,
     breadcrumb:
-      typeof Breadcrumb === 'string' ? (
-        createElement('span', { key: componentProps.key }, Breadcrumb)
+      typeof Breadcrumb === "string" ? (
+        createElement("span", { key: componentProps.key }, Breadcrumb)
       ) : (
         <Breadcrumb {...componentProps} />
       ),
@@ -260,7 +261,7 @@ const getDefaultBreadcrumb = ({
   currentSection: string;
   location: Location;
   pathSection: string;
-  defaultFormatter?: (str: string) => string
+  defaultFormatter?: (str: string) => string;
 }): BreadcrumbData => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const match = matchPath(
@@ -268,11 +269,13 @@ const getDefaultBreadcrumb = ({
       end: true,
       path: pathSection,
     },
-    pathSection,
+    pathSection
   )!;
 
   return render({
-    breadcrumb: defaultFormatter ? defaultFormatter(currentSection) : humanize(currentSection),
+    breadcrumb: defaultFormatter
+      ? defaultFormatter(currentSection)
+      : humanize(currentSection),
     match,
     location,
   });
@@ -294,7 +297,7 @@ const getBreadcrumbMatch = ({
   currentSection: string;
   disableDefaults?: boolean;
   excludePaths?: string[];
-  defaultFormatter?: (str: string) => string
+  defaultFormatter?: (str: string) => string;
   location: Location;
   pathSection: string;
   branches: BreadcrumbsRouteBranch[];
@@ -303,13 +306,14 @@ const getBreadcrumbMatch = ({
 
   // Check the optional `excludePaths` option in `options` to see if the
   // current path should not include a breadcrumb.
-  const getIsPathExcluded = (path: string): boolean => matchPath(
-    {
-      path,
-      end: true,
-    },
-    pathSection,
-  ) != null;
+  const getIsPathExcluded = (path: string): boolean =>
+    matchPath(
+      {
+        path,
+        end: true,
+      },
+      pathSection
+    ) != null;
 
   if (excludePaths && excludePaths.some(getIsPathExcluded)) {
     return NO_BREADCRUMB;
@@ -335,7 +339,7 @@ const getBreadcrumbMatch = ({
         end: true,
         caseSensitive,
       },
-      pathSection,
+      pathSection
     );
 
     // If user passed breadcrumb: null
@@ -359,8 +363,11 @@ const getBreadcrumbMatch = ({
         // Although we have a match, the user may be passing their react-router config object
         // which we support. The route config object may not have a `breadcrumb` param specified.
         // If this is the case, we should provide a default via `humanize`.
-        breadcrumb: userProvidedBreadcrumb
-        || (defaultFormatter ? defaultFormatter(currentSection) : humanize(currentSection)),
+        breadcrumb:
+          userProvidedBreadcrumb ||
+          (defaultFormatter
+            ? defaultFormatter(currentSection)
+            : humanize(currentSection)),
         match: { ...match, route },
         location,
         props,
@@ -384,7 +391,7 @@ const getBreadcrumbMatch = ({
   return getDefaultBreadcrumb({
     pathSection,
     // include a "Home" breadcrumb by default (can be overrode or disabled in config).
-    currentSection: pathSection === '/' ? 'Home' : currentSection,
+    currentSection: pathSection === "/" ? "Home" : currentSection,
     location,
     defaultFormatter,
   });
@@ -408,20 +415,20 @@ export const getBreadcrumbs = ({
   const branches = rankRouteBranches(flattenRoutes(routes));
   const breadcrumbs: BreadcrumbData[] = [];
   pathname
-    .split('?')[0]
-    .split('/')
+    .split("?")[0]
+    .split("/")
     .reduce(
       (previousSection: string, currentSection: string, index: number) => {
         // Combine the last route section with the currentSection.
         // For example, `pathname = /1/2/3` results in match checks for
         // `/1`, `/1/2`, `/1/2/3`.
         const pathSection = !currentSection
-          ? '/'
+          ? "/"
           : `${previousSection}/${currentSection}`;
 
         // Ignore trailing slash or double slashes in the URL
-        if (pathSection === '/' && index !== 0) {
-          return '';
+        if (pathSection === "/" && index !== 0) {
+          return "";
         }
 
         const breadcrumb = getBreadcrumbMatch({
@@ -439,9 +446,9 @@ export const getBreadcrumbs = ({
           breadcrumbs.push(breadcrumb);
         }
 
-        return pathSection === '/' ? '' : pathSection;
+        return pathSection === "/" ? "" : pathSection;
       },
-      '',
+      ""
     );
 
   return breadcrumbs;
@@ -452,12 +459,13 @@ export const getBreadcrumbs = ({
  */
 const useReactRouterBreadcrumbs = (
   routes?: BreadcrumbsRoute[],
-  options?: Options,
-): BreadcrumbData[] => getBreadcrumbs({
-  routes: routes || [],
-  location: useLocation(),
-  options,
-});
+  options?: Options
+): BreadcrumbData[] =>
+  getBreadcrumbs({
+    routes: routes || [],
+    location: useLocation(),
+    options,
+  });
 
 export default useReactRouterBreadcrumbs;
 
@@ -479,7 +487,7 @@ function invariant(cond: any, message: string): asserts cond {
  * @see https://reactrouter.com/docs/en/v6/api#createroutesfromchildren
  */
 export function createRoutesFromChildren(
-  children: React.ReactNode,
+  children: React.ReactNode
 ): BreadcrumbsRoute[] {
   const routes: BreadcrumbsRoute[] = [];
   React.Children.forEach(children, (element) => {
@@ -494,7 +502,9 @@ export function createRoutesFromChildren(
       // eslint-disable-next-line prefer-spread
       routes.push.apply(
         routes,
-        createRoutesFromChildren(element.props.children),
+        createRoutesFromChildren(
+          (element.props as React.FragmentProps).children
+        )
       );
       return;
     }
@@ -502,20 +512,26 @@ export function createRoutesFromChildren(
     invariant(
       element.type === Route,
       `[${
-        typeof element.type === 'string' ? element.type : element.type.name
-      }] is not a <Route> component. All component children of <Routes> must be a <Route> or <React.Fragment>`,
+        typeof element.type === "string" ? element.type : element.type.name
+      }] is not a <Route> component. All component children of <Routes> must be a <Route> or <React.Fragment>`
     );
 
     const route: BreadcrumbsRoute = {
-      caseSensitive: element.props.caseSensitive,
-      element: element.props.element,
-      index: element.props.index,
-      path: element.props.path,
-      breadcrumb: element.props.breadcrumb,
+      caseSensitive: (element.props as PathRouteProps).caseSensitive,
+      element: (element.props as PathRouteProps).element,
+      index: (element.props as PathRouteProps).index,
+      path: (element.props as PathRouteProps).path,
+      breadcrumb: (
+        element.props as PathRouteProps & {
+          breadcrumb?: BreadcrumbsRoute["breadcrumb"];
+        }
+      ).breadcrumb,
     };
 
-    if (element.props.children) {
-      route.children = createRoutesFromChildren(element.props.children);
+    if ((element.props as PathRouteProps).children) {
+      route.children = createRoutesFromChildren(
+        (element.props as PathRouteProps).children
+      );
     }
 
     routes.push(route);
@@ -524,7 +540,9 @@ export function createRoutesFromChildren(
   return routes;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type BreadCrumb = { breadcrumb?: string | ((param: any) => JSX.Element) | JSX.Element | null };
+type BreadCrumb = {
+  breadcrumb?: string | ((param: any) => JSX.Element) | JSX.Element | null;
+};
 
 type BreadCrumbRouteType = (
   _props: (PathRouteProps | LayoutRouteProps | IndexRouteProps) & BreadCrumb

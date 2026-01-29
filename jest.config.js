@@ -1,12 +1,13 @@
 module.exports = {
   collectCoverage: true,
-  coverageDirectory: './coverage',
+  coverageDirectory: "./coverage",
+  testEnvironment: "jsdom",
   coveragePathIgnorePatterns: [
-    '/coverage/',
-    '/dist/',
-    '/node_modules/',
-    'jest.config.js',
-    'jest.setup.js',
+    "/coverage/",
+    "/dist/",
+    "/node_modules/",
+    "jest.config.js",
+    "jest.setup.js",
   ],
   coverageThreshold: {
     global: {
@@ -16,5 +17,5 @@ module.exports = {
       statements: 100,
     },
   },
-  setupFiles: ['./jest.setup.js'],
+  setupFiles: ["./jest.setup.js"],
 };

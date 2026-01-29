@@ -12,8 +12,8 @@ As of `react-router v6.4` there is an [officially supported way](https://reactro
 </h3>
 
 <p align="center">
-  <a href="https://github.com/icd2k3/use-react-router-breadcrumbs/actions" target="_blank"><img src="https://github.com/icd2k3/use-react-router-breadcrumbs/workflows/Node.js%20CI/badge.svg" /></a>
-  <a href='https://coveralls.io/github/icd2k3/use-react-router-breadcrumbs?branch=master'><img src='https://coveralls.io/repos/github/icd2k3/use-react-router-breadcrumbs/badge.svg?branch=master' alt='Coverage Status' /></a>
+  <a href="https://github.com/andrzej-woof/use-react-router-breadcrumbs/actions" target="_blank"><img src="https://github.com/andrzej-woof/use-react-router-breadcrumbs/workflows/Node.js%20CI/badge.svg" /></a>
+  <a href='https://coveralls.io/github/andrzej-woof/use-react-router-breadcrumbs?branch=master'><img src='https://coveralls.io/repos/github/andrzej-woof/use-react-router-breadcrumbs/badge.svg?branch=master' alt='Coverage Status' /></a>
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@ As of `react-router v6.4` there is an [officially supported way](https://reactro
 <hr/>
 
 <p align="center">
-  Using an <b>older version</B> of <code>react-router</code>? Check out <a href="https://github.com/icd2k3/react-router-breadcrumbs-hoc">react-router-breadcrumbs-hoc</a> which is compatible with v4 and v5.
+  Using an <b>older version</B> of <code>react-router</code>? Check out <a href="https://github.com/andrzej-woof/react-router-breadcrumbs-hoc">react-router-breadcrumbs-hoc</a> which is compatible with v4 and v5.
 </p>
 
 ---
